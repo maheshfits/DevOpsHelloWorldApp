@@ -1,5 +1,5 @@
 def getReportZipFile() {
-    return "Reports_Build_${BUILD_DATE_FORMATTED,"yyyyMMdd"}-${BRANCH_NAME}-${BUILDS_TODAY}-${BUILD_NUMBER}.zip"
+    return  VersionNumber(versionNumberString: '${BUILD_DATE_FORMATTED,"yyyyMMdd"}-${BRANCH_NAME}-${BUILDS_TODAY}-${BUILD_NUMBER}.zip')
 }
 pipeline {
    agent {
