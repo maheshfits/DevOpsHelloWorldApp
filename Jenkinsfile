@@ -3,7 +3,7 @@ pipeline {
     	node {
         	label 'Java'
         	customWorkspace '/home/mchathur/Jenkins/'
-   	 }
+   	    }
     } 
 
     environment {
@@ -18,107 +18,73 @@ pipeline {
                }
            ]
         }"""
-
         tag = VersionNumber(versionNumberString: '${BUILD_DATE_FORMATTED,"yyyyMMdd"}-${BRANCH_NAME}-${BUILDS_TODAY}-${BUILD_NUMBER}');
     }
+    try{
+        stages {
 
-     stages {
-         stage ('Initialize') {
-            steps {
-		sh '''
-                echo "PATH = ${PATH}"
-                echo "M2_HOME = ${M2_HOME}"
-		'''	
-	        echo "######### Initialize Stage Done #########"
+            stage ('Initialize') {
+                steps {
+                        sh '''
+                            echo "PATH = ${PATH}"
+                            echo "M2_HOME = ${M2_HOME}"
+                        '''	
+                }
+            } 
+            stage ('Build Stage') {
+                steps {
+                    sh 'mvn clean install -DskipTests'
+                }
+            }
+
+            stage ('Deploy Stage') {
+                    steps {
+                            sh 'mv target/DevOpsHelloWorldApp.war target/hello-world-app.${tag}.war'
+                            ${BUILD_NUMBER}=tag
+                    }
+            }
+
+            stage('Upload Artifact') {
+                    steps {
+                        script {
+                                def server = Artifactory.server 'Artifactory-1'
+                                def buildInfo = server.upload spec: uploadSpec
+                        }     
+                    }
+            }
+
+            stage ('Build Docker Image Stage') {
+                    steps {
+                        script {
+                            dockerImage = docker.build registry + ":$tag"
+                            }
+                }
+            }
+
+            stage('Deploy Docker Image Stage') {
+                    steps{
+                        script {
+                            docker.withRegistry( '', registryCredential ) {
+                                dockerImage.push()
+                            }
+                        }
+                    }
+            }
+            stage('Archive Artifacts'){
+                steps{
+                    archiveArtifacts artifacts: 'target/*.war', onlyIfSuccessful: true
+                }
             }
         }
-
-     
-     	 stage ('Build Stage') {
-	        steps {
-		        sh 'mvn clean install -DskipTests'
-                echo "######### Build Stage Done #########"
-            }
-		}
-
-    stage ('Deploy Stage') {
-         	steps {
-                	sh 'mv target/DevOpsHelloWorldApp.war target/hello-world-app.${tag}.war'
-                echo "######### Deploy Stage Done #########"
-            }
     }
-
-    stage('Upload Artifact') {
-            steps {
-                 script {
-                          def server = Artifactory.server 'Artifactory-1'
-                          def buildInfo = server.upload spec: uploadSpec
-                  }     
-            }
-
-    }
-
-	 stage ('Build Docker Image Stage') {
-            steps {
-                script {
-                       dockerImage = docker.build registry + ":$tag"
-                      }
-                echo "######### Build Docker Image Stage #########"
-		  }
-       }
-
-        /* stage ('Artifactory configuration') {
-                   steps {
-                       rtServer (
-                           id: "Artifactory-1",
-                           url: SERVER_URL,
-                           credentialsId: CREDENTIALS
-                       )
-
-                       rtMavenDeployer (
-                           id: "MAVEN_DEPLOYER",
-                           serverId: "ARTIFACTORY_SERVER",
-                           releaseRepo: "libs-release-local",
-                           snapshotRepo: "libs-snapshot-local"
-                       )
-
-                       rtMavenResolver (
-                           id: "MAVEN_RESOLVER",
-                           serverId: "ARTIFACTORY_SERVER",
-                           releaseRepo: "libs-release",
-                           snapshotRepo: "libs-snapshot"
-                       )
-                   }
-               }
-
-               stage ('Exec Maven') {
-                   steps {
-                       rtMavenRun (
-                           tool: MAVEN_TOOL, // Tool name from Jenkins configuration
-                           pom: 'maven-example/pom.xml',
-                           goals: 'clean install',
-                           deployerId: "MAVEN_DEPLOYER",
-                           resolverId: "MAVEN_RESOLVER"
-                       )
-                   }
-               }
-
-               stage ('Publish build info') {
-                   steps {
-                       rtPublishBuildInfo (
-                           serverId: "ARTIFACTORY_SERVER"
-                       )
-                   }
-               } */
-     stage('Deploy Docker Image Stage') {
-             steps{
-                script {
-                   docker.withRegistry( '', registryCredential ) {
-                   dockerImage.push()
-                 }
-               }
-               echo "######### Deploy Docker Image Stage #########"
-           }
-       }
-    }
+    catch (error) {
+       stage ("Cleanup after fail")
+       emailext attachLog: true, body: "Build failed (see ${env.BUILD_URL}): ${error}", subject: "[JENKINS] ${env.JOB_NAME} failed", to: 'someone@example.com'
+       throw error
+   } finally { 
+        always { 
+            cleanWs()
+    
+        }
+   }
 }
