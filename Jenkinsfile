@@ -22,7 +22,6 @@ pipeline {
     }
     
     stages {
-        try{
             stage ('Initialize') {
                 steps {
                         sh '''
@@ -32,9 +31,15 @@ pipeline {
                 }
             } 
             stage ('Build Stage') {
-                steps {
-                    sh 'mvn clean install -DskipTests'
-                }
+               try{
+                    steps {
+                        sh 'mvn clean install -DskipTests'
+                    }
+               }catch (error) {
+                    stage ("Cleanup after fail")
+                    emailext attachLog: true, body: "Build failed (see ${env.BUILD_URL}): ${error}", subject: "[JENKINS] ${env.JOB_NAME} failed", to: 'someone@example.com'
+                    throw error
+                } 
             }
 
             stage ('Deploy Stage') {
@@ -79,15 +84,21 @@ pipeline {
             }
         }
     
-    catch (error) {
-       stage ("Cleanup after fail")
-       emailext attachLog: true, body: "Build failed (see ${env.BUILD_URL}): ${error}", subject: "[JENKINS] ${env.JOB_NAME} failed", to: 'someone@example.com'
-       throw error
-   } finally { 
-        always { 
-            cleanWs()
-    
+    post {
+        // Run regardless of the completion status of the Pipeline run
+        always {
+            // send email
+            // email template to be loaded from managed files
+            emailext body: '${SCRIPT,template="managed:EmailTemplate"}',
+                    attachLog: true,
+                    compressLog: true,
+                    attachmentsPattern: "$reportZipFile",
+                    mimeType: 'text/html',
+                    subject: "Pipeline Build ${BUILD_NUMBER}",
+                    to: "${params.EMAIL_RECIPIENTS}"
+
+            // clean up workspace
+            deleteDir()
         }
-   }
     }
 }
