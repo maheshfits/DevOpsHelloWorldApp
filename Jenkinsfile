@@ -19,7 +19,7 @@ pipeline {
            ]
         }"""
 
-        tag = VersionNumber(versionNumberString: '${BUILD_DATE_FORMATTED,"yyyyMMdd"}-develop-${BUILDS_TODAY}-${BUILD_NUMBER}');
+        tag = VersionNumber(versionNumberString: '${BUILD_DATE_FORMATTED,"yyyyMMdd"}-${BRANCH_NAME}-${BUILDS_TODAY}-${BUILD_NUMBER}');
     }
 
      stages {
@@ -33,14 +33,8 @@ pipeline {
             }
         }
 
-     stage ('Checkout Stage') {
-            steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/sahan89/DevOpsHelloWorldApp.git']]])
-		        echo "######### Checkout Stage Done #########"
-            }
-        }
-
-	 stage ('Build Stage') {
+     
+     	 stage ('Build Stage') {
 	        steps {
 		        sh 'mvn clean install -DskipTests'
                 echo "######### Build Stage Done #########"
