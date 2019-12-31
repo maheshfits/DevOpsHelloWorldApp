@@ -1,3 +1,6 @@
+def getReportZipFile() {
+    return "Reports_Build_${BUILD_DATE_FORMATTED,"yyyyMMdd"}-${BRANCH_NAME}-${BUILDS_TODAY}-${BUILD_NUMBER}.zip"
+}
 pipeline {
    agent {
     	node {
@@ -84,6 +87,7 @@ pipeline {
             stage('Archive Artifacts'){
                 steps{
                     archiveArtifacts artifacts: 'target/*.war', onlyIfSuccessful: true
+                    zip dir: "${workspace}/target", zipFile: "$reportZipFile" // Create a zip file of content in the workspace
                 }
             }
         }
