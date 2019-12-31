@@ -20,9 +20,9 @@ pipeline {
         }"""
         tag = VersionNumber(versionNumberString: '${BUILD_DATE_FORMATTED,"yyyyMMdd"}-${BRANCH_NAME}-${BUILDS_TODAY}-${BUILD_NUMBER}');
     }
-    try{
-        stages {
-
+    
+    stages {
+        try{
             stage ('Initialize') {
                 steps {
                         sh '''
@@ -78,7 +78,7 @@ pipeline {
                 }
             }
         }
-    }
+    
     catch (error) {
        stage ("Cleanup after fail")
        emailext attachLog: true, body: "Build failed (see ${env.BUILD_URL}): ${error}", subject: "[JENKINS] ${env.JOB_NAME} failed", to: 'someone@example.com'
@@ -89,4 +89,5 @@ pipeline {
     
         }
    }
+    }
 }
