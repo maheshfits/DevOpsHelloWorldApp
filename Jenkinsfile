@@ -39,8 +39,10 @@ pipeline {
 
             stage ('Deploy Stage') {
                     steps {
-                            sh 'mv target/DevOpsHelloWorldApp.war target/hello-world-app.${tag}.war'
-                            ${BUILD_NUMBER}=tag
+                            sh '''
+                            mv target/DevOpsHelloWorldApp.war target/hello-world-app.${tag}.war
+                            set BUILD_NUMBER=${tag}
+                            '''
                     }
             }
 
