@@ -31,15 +31,16 @@ pipeline {
                 }
             } 
             stage ('Build Stage') {
-               try{
-                    steps {
+                steps {
+                    try{
                         sh 'mvn clean install -DskipTests'
                     }
-               }catch (error) {
+                    catch (error) {
                     stage ("Cleanup after fail")
                     emailext attachLog: true, body: "Build failed (see ${env.BUILD_URL}): ${error}", subject: "[JENKINS] ${env.JOB_NAME} failed", to: 'someone@example.com'
                     throw error
-                } 
+                    } 
+                }              
             }
 
             stage ('Deploy Stage') {
