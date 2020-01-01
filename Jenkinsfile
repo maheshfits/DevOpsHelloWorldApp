@@ -24,6 +24,12 @@ pipeline {
         tag = VersionNumber(versionNumberString: '${BUILD_DATE_FORMATTED,"yyyyMMdd"}-${BRANCH_NAME}-${BUILDS_TODAY}-${BUILD_NUMBER}');
     }
     
+    parameters {
+        choice(choices: "$environment", description: '', name: 'ENVIRONMENT')
+        string(defaultValue: "$emailRecipients",
+                description: 'List of email recipients',
+                name: 'EMAIL_RECIPIENTS')
+    }
     stages {
             stage ('Initialize') {
                 steps {
