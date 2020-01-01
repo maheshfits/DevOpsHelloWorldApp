@@ -97,7 +97,7 @@ pipeline {
             stage('Archive Artifacts'){
                 steps{
                     archiveArtifacts artifacts: 'target/*.war', onlyIfSuccessful: true
-                    zip dir: "${workspace}/target", zipFile: "$reportZipFile" // Create a zip file of content in the workspace
+                    zip dir: "${workspace}/target/maven-archiver/", zipFile: "$reportZipFile" // Create a zip file of content in the workspace
                 }
             }
         }
