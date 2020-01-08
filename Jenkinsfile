@@ -37,10 +37,14 @@ pipeline {
     stages {
             stage ('Initialize') {
                 steps {
+                    timestamps {
+                      logstash{
                         sh '''
                             echo "PATH = ${PATH}"
                             echo "M2_HOME = ${M2_HOME}"
                         '''	
+                      }
+                    }
                 }
             } 
             stage ('Build Stage') {
