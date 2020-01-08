@@ -22,7 +22,7 @@ pipeline {
            "files": [
                {
                "pattern": "target/*.war",
-                "target": "libs-snapshot-local/war/"
+                "target": "generic-local/sahan/DevOpsHelloWorldApp/war/"
                }
            ]
         }"""
@@ -67,7 +67,6 @@ pipeline {
                             '''
                     }
             }
-
             stage('Upload Artifact') {
                     steps {
                         script {
@@ -76,7 +75,6 @@ pipeline {
                         }     
                     }
             }
-
             stage ('Build Docker Image Stage') {
                     steps {
                         script {
@@ -84,7 +82,6 @@ pipeline {
                             }
                 }
             }
-
             stage('Deploy Docker Image Stage') {
                     steps{
                         script {
