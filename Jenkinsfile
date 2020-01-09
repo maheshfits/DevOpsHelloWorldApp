@@ -37,14 +37,11 @@ pipeline {
     stages {
             stage ('Initialize') {
                 steps {
-                    timestamps {
-                      logstash{
+                    
                         sh '''
                             echo "PATH = ${PATH}"
                             echo "M2_HOME = ${M2_HOME}"
-                        '''	
-                      }
-                    }
+                        '''
                 }
             } 
             stage ('Build Stage') {
@@ -115,6 +112,8 @@ pipeline {
                     mimeType: 'text/html',
                     subject: "Pipeline Build ${BUILD_NUMBER}",
                     to: "${params.EMAIL_RECIPIENTS}"
+
+            logstashSend failBuild: true, maxLines: 10000
 
             // clean up workspace
             deleteDir()
