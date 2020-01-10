@@ -113,7 +113,7 @@ pipeline {
                     subject: "Pipeline Build ${BUILD_NUMBER}",
                     to: "${params.EMAIL_RECIPIENTS}"
 
-            logstashSend failBuild: true, maxLines: 10000
+            //logstashSend failBuild: true, maxLines: 10000
 
             // clean up workspace
             deleteDir()
