@@ -3,7 +3,7 @@ def getReportZipFile() {
 }
 
 def getEmailRecipients() {
-    return ''
+    return '0'
 }
 
 pipeline {
